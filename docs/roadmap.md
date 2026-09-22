@@ -14,8 +14,8 @@
 
 | # | Pekerjaan | Status |
 | --- | --- | --- |
-| 1 | Hashing dan proof di Rust, dicocokkan dengan test vector | Kode dan test ditulis (`crates/solvcred-proof`); **belum dikompilasi** |
-| 2 | Program Anchor: registry, publikasi batch, pencabutan, penonaktifan, rotasi/pemulihan kunci | Kode ditulis (`programs/solvcred`); bootstrap terikat upgrade authority; **belum dikompilasi** |
+| 1 | Hashing dan proof di Rust, dicocokkan dengan test vector | Selesai; `cargo test` lulus di CI terhadap `test-vectors/v1.json` |
+| 2 | Program Anchor: registry, publikasi batch, pencabutan, penonaktifan, rotasi/pemulihan kunci | Kode ditulis (`programs/solvcred`); bootstrap terikat upgrade authority; build host dan unit test lulus di CI, **build SBF/IDL belum dijalankan** |
 | 3 | Pengujian otorisasi dan keamanan akun on-chain | Test ditulis (`tests/program`) dan lolos typecheck; **belum dijalankan** di validator |
 | 4 | Adapter RPC untuk batch, issuer, dan pencabutan | Selesai dan diuji dengan unit test (`packages/solana`) |
 | 5 | UI React, wallet penerbit/admin, ekspor dan verifikasi | Selesai; build dan smoke test browser lokal; alur wallet belum diuji dengan wallet sungguhan |

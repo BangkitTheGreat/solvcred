@@ -2,7 +2,7 @@
 
 Fondasi penerbitan dan verifikasi kredensial digital berbasis Solana. Dokumen berada di tangan pemilik; satu Merkle root mewakili satu batch. Penerima dan verifikator tidak membutuhkan wallet.
 
-**Status saat ini: kode MVP lengkap untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI). Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. Kode Rust/Anchor dan test on-chain belum pernah dijalankan di lingkungan pengerjaan (Windows tanpa toolchain Solana); verifikasi pertamanya adalah workflow CI Linux. Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
+**Status saat ini: kode MVP ditulis untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI). Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. `cargo test --workspace` sudah lulus di CI, tetapi build SBF Anchor dan test on-chain belum pernah dijalankan. Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
 
 ## Mulai
 

@@ -1,6 +1,14 @@
 # Validasi
 
-Lingkungan lokal: Windows x64, Node v22.23.2, Python 3.11, Intel Core i7-13620H. Rust, Solana CLI, dan Anchor **tidak terpasang**. Workflow GitHub Actions belum pernah dijalankan.
+Lingkungan lokal: Windows x64, Node v22.23.2, Python 3.11, Intel Core i7-13620H. Rust, Solana CLI, dan Anchor **tidak terpasang** di mesin ini.
+
+## GitHub Actions
+
+| Job | Hasil |
+| --- | --- |
+| `rust`: `cargo test --workspace` (Rust 1.89, host) | Lulus pada run pertama (commit `744c2a0`): crate proof terhadap `test-vectors/v1.json` dan unit test program |
+| `typescript` | Gagal di `npm ci` pada run pertama, karena lockfile ditulis npm 12 dan tidak mencatat `utf-8-validate` yang diwajibkan npm 10 (bawaan Node 22). Lockfile dibuat ulang dengan npm 10, dan `npm ci` npm 10 maupun npm 12 lulus secara lokal |
+| `anchor`: build SBF, IDL, dan test on-chain | Belum pernah berjalan (skipped karena bergantung pada job `typescript`) |
 
 ## Sudah dijalankan secara lokal
 
@@ -20,8 +28,8 @@ Unit test klien memakai `Connection` web3.js sungguhan dengan `fetch` palsu. Cak
 
 | Pemeriksaan | Perintah | Catatan |
 | --- | --- | --- |
-| Crate `solvcred-proof` terhadap `test-vectors/v1.json` beserta kasus manipulasi | `cargo test --workspace` | Semantik `verify_path` dicocokkan dengan salinan JavaScript terhadap fixture, belum dengan compiler Rust |
-| Unit test program (validasi nama/domain, discriminator, kode error) | `cargo test --workspace` | |
+| Crate `solvcred-proof` terhadap `test-vectors/v1.json` beserta kasus manipulasi | `cargo test --workspace` | Lulus di CI |
+| Unit test program (validasi nama/domain, discriminator, kode error) | `cargo test --workspace` | Lulus di CI (build host, bukan SBF) |
 | Build program Anchor 0.32.1 dan IDL | `anchor build` | Belum pernah dikompilasi |
 | Otorisasi, relasi akun, immutability, lifecycle kunci, dan siklus penuh lewat adapter | `anchor test` → `npm run test:program` | Hanya lolos typecheck. Kode error yang diharapkan diturunkan dari urutan constraint Anchor |
 | Kesesuaian IDL dengan konstanta klien | `tests/program/00-idl.test.ts` | Dijalankan setelah `anchor build` |
