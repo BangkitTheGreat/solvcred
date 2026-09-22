@@ -1,70 +1,96 @@
 # SolVcred
 
-Fondasi penerbitan dan verifikasi kredensial digital berbasis Solana. Dokumen berada di tangan pemilik; satu Merkle root mewakili satu batch. Penerima tidak membutuhkan wallet.
+Fondasi penerbitan dan verifikasi kredensial digital berbasis Solana. Dokumen berada di tangan pemilik; satu Merkle root mewakili satu batch. Penerima dan verifikator tidak membutuhkan wallet.
 
-**Status saat ini: core lokal yang dapat diuji. Belum ada program Anchor, UI, adapter RPC, atau deployment Devnet.** Hasil `integrity-match` bukan bukti penerbit terpercaya maupun status pencabutan. Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
+**Status saat ini: kode MVP lengkap untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI). Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. Kode Rust/Anchor dan test on-chain belum pernah dijalankan di lingkungan pengerjaan (Windows tanpa toolchain Solana); verifikasi pertamanya adalah workflow CI Linux. Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
 
 ## Mulai
 
-Prasyarat: Node.js 22.23+ dan npm. Python 3.10+ hanya diperlukan untuk memeriksa ulang fixture independen.
+Prasyarat TypeScript: Node.js 22.23+ dan npm. Python 3.10+ hanya untuk memeriksa ulang fixture independen.
 
 ```sh
 npm ci --ignore-scripts
-npm run check
+npm run check                          # typecheck (root + web) dan unit test core/klien
 python scripts/reference_vectors.py --check
+npm run web:dev                        # UI lokal di http://localhost:5173
+npm run web:build                      # bundle statis ke dist/web
 npm run demo
 npm run benchmark
 ```
 
-`npm run demo` menghasilkan tiga PDF fiktif, proof JSON, dan manifest draft dalam `work/demo-<batch-id>/` yang diabaikan Git. Demo memakai program ID fixture yang **bukan deployment SolVcred**; tidak menghubungkan wallet atau mengirim transaksi. Tidak ada kunci privat maupun credential yang dibutuhkan.
+Prasyarat Rust/Anchor (Linux atau WSL2): Rust 1.89, Solana CLI/Agave 2.3.x, Anchor CLI 0.32.1.
 
-`npm run benchmark` menguji 100 payload sintetis berheader PDF sebesar 1 MiB masing-masing. Ini benchmark hashing lokal, bukan validitas struktur PDF, performa browser, atau transaksi Solana.
+```sh
+cargo test --workspace                 # crate solvcred-proof (test vector v1) dan unit test program
+solana-keygen new --no-bip39-passphrase  # wallet provider lokal jika belum ada
+anchor build && anchor keys sync       # ganti placeholder dengan program ID dari keypair lokal
+anchor test                            # validator lokal, deploy upgradeable, lalu npm run test:program
+```
+
+`anchor keys sync` mengubah `declare_id!` dan `Anchor.toml`. Jangan commit program ID lokal sebagai program ID produksi. Workflow `.github/workflows/ci.yml` menjalankan langkah yang sama di `ubuntu-latest`.
+
+`npm run demo` menghasilkan tiga PDF fiktif, proof JSON, dan manifest draft di `work/demo-<batch-id>/`. Demo tidak menghubungkan wallet atau mengirim transaksi.
+
+## Konfigurasi UI
+
+Salin `apps/web/.env.example` menjadi `apps/web/.env`.
+
+| Variabel | Default | Keterangan |
+| --- | --- | --- |
+| `VITE_SOLVCRED_PROGRAM_ID` | placeholder | Program ID hasil deploy. UI menampilkan peringatan selama nilainya placeholder |
+| `VITE_SOLVCRED_RPC_URL` | `https://api.devnet.solana.com` | Endpoint RPC tetap. Proof tidak pernah memilih endpoint |
+| `VITE_SOLVCRED_GENESIS_HASH` | genesis Devnet | Dipakai untuk mendeteksi RPC yang terhubung ke jaringan lain |
 
 ## Yang tersedia
 
-- Persiapan draft batch dengan SHA-256 dan nonce dari Web Crypto.
-- Leaf mengikat network, program ID, issuer stabil, batch, count, index, nonce, dan hash PDF.
-- Merkle proof deterministik dengan duplikasi node ganjil dan prefix hash berbeda.
-- Parser proof, batas ukuran, penolakan duplikat dokumen dan pemeriksaan integritas terhadap commitment eksternal.
-- Test vector dari Python independen, test manipulasi, demo lokal, benchmark, dan workflow CI.
-- Tidak ada dependensi runtime pihak ketiga; TypeScript dan tipe Node hanya untuk development.
+| Kelompok | Lokasi | Isi |
+| --- | --- | --- |
+| Core TS | `packages/core` | Draft batch, nonce Web Crypto, leaf/Merkle v1, parser proof, pemeriksaan integritas, `documentLeafHash` |
+| 1. Rust proof | `crates/solvcred-proof` | Encoding leaf, Merkle tree/path, `verify_path` identik dengan core; diuji terhadap `test-vectors/v1.json` |
+| 2. Program Anchor | `programs/solvcred` | Registry dengan bootstrap oleh upgrade authority, register issuer, publish batch, revoke dengan verifikasi Merkle on-chain, deactivate, rotate, recover |
+| 3. Uji on-chain | `tests/program` | Otorisasi, relasi akun, immutability batch, lifecycle kunci, drift IDL terhadap klien |
+| 4. Adapter RPC | `packages/solana` | Builder instruksi, decoder akun ketat, PDA, `verifyCredential` dengan satu snapshot finalized, `checkPublishedBatch` (FR-10) |
+| 5. UI | `apps/web` | Verifikasi tanpa wallet; alur penerbit (draft backup → publish → paket final, revoke, rotasi); alur admin |
 
-## Penggunaan core
+Kontrak biner program ↔ klien ada di [docs/program-interface.md](docs/program-interface.md).
 
-Import API dari `packages/core/src/index.ts` dalam proyek TypeScript atau `dist/packages/core/src/index.js` setelah build.
+## Status verifikasi
 
-| API | Fungsi |
-| --- | --- |
-| `randomId()` | Membuat ID 32 byte acak dalam lowercase hex |
-| `prepareBatch(context, documents)` | Mengembalikan commitment dan proof berstatus `draft` |
-| `parseProofJson(text)` | Memvalidasi JSON tidak tepercaya dan menghasilkan proof bertipe |
-| `serializeProof(proof)` | Mengekspor proof yang tervalidasi |
-| `verifyDocument(pdfBytes, proofJson, expectedCommitment)` | Memeriksa integritas terhadap commitment yang diberikan pemanggil |
+`verifyCredential` hanya menghasilkan **Terverifikasi** jika semua kondisi berikut terpenuhi:
 
-`expectedCommitment` harus berasal dari batch on-chain yang telah diautentikasi oleh adapter mendatang. Jangan mengambilnya dari proof pengguna untuk menyatakan kredensial sah. Parser melempar `ValidationError` dengan kode stabil tanpa memasukkan isi dokumen ke pesan error. Pemanggil harus menangani error tersebut; jangan mengubahnya menjadi status valid.
+- RPC berada di jaringan yang dikonfigurasi (genesis hash cocok).
+- Program ter-deploy.
+- Akun issuer, batch, dan revocation lolos validasi owner, ukuran, discriminator, dan relasi.
+- Integritas dokumen cocok dengan root on-chain.
+- Tidak ada catatan pencabutan.
+- Issuer aktif.
 
-Core memakai Web Crypto yang tersedia pada Node 22 dan browser dalam secure context. Kompatibilitas API tidak berarti pengujian browser sudah dilakukan; pengujian tahap ini dijalankan di Node.
+Kegagalan atau timeout RPC selalu menjadi **Belum dapat diverifikasi**. Kegagalan itu tidak pernah dianggap sebagai bukti bahwa kredensial belum dicabut. RPC hanya menerima alamat akun; PDF, nonce, sibling, dan proof JSON tidak dikirim.
 
 ## Dokumentasi
 
-- [PRD terakhir dari pengguna](docs/PRD.md) — dipertahankan tanpa perubahan; nama repo lama tercatat di sumber.
+- [PRD terakhir dari pengguna](docs/PRD.md): dipertahankan tanpa perubahan.
+- [Antarmuka program v1](docs/program-interface.md): PDA, layout akun, instruksi, error.
 - [Diagram arsitektur, alur, relasi akun dan lifecycle](docs/architecture.md).
 - [Spesifikasi proof dan encoding v1](docs/proof-format-v1.md).
 - [Model ancaman dan batas keamanan](docs/threat-model.md).
 - [Kemajuan dan pekerjaan berikutnya](docs/roadmap.md).
-- [Hasil validasi lokal](docs/validation.md).
+- [Hasil validasi](docs/validation.md).
 
 ## Struktur
 
 ```text
-docs/                    PRD, diagram, spesifikasi, keputusan dan hasil pengujian
-packages/core/src/       API, validasi, encoding dan Merkle
-packages/core/test/      Pengujian integritas dan input tidak tepercaya
-test-vectors/v1.json     Fixture deterministik untuk TypeScript dan Rust mendatang
-scripts/                Referensi Python, demo dan benchmark
-.github/workflows/      CI typecheck, test dan pemeriksaan fixture
+apps/web/                React + Vite: verifikasi, penerbit, admin
+crates/solvcred-proof/   Implementasi Rust format proof v1
+programs/solvcred/       Program Anchor
+packages/core/           Core TypeScript tanpa dependensi runtime
+packages/solana/         Klien program dan adapter RPC (@solana/web3.js)
+tests/program/           Uji on-chain, dijalankan oleh `anchor test`
+test-vectors/v1.json     Fixture deterministik untuk TypeScript dan Rust
+scripts/                 Referensi Python, demo dan benchmark
+.github/workflows/       CI TypeScript, Rust, dan Anchor localnet
 ```
 
 ## Batas jaminan
 
-SolVcred tidak membuktikan kebenaran klaim akademik atau identitas orang yang membawa file. Hash dan nonce tidak menghilangkan seluruh risiko korelasi metadata. Root tidak dapat memulihkan PDF atau proof yang hilang. Pergantian byte PDF, termasuk ekspor ulang atau pemindaian, mengubah hasil hash. Admin registry, RPC, dan upgrade authority membutuhkan kebijakan kepercayaan yang eksplisit sebelum deployment.
+SolVcred tidak membuktikan kebenaran klaim akademik atau identitas orang yang membawa file. Hash dan nonce tidak menghilangkan seluruh risiko korelasi metadata. Root tidak dapat memulihkan PDF atau proof yang hilang. Pergantian byte PDF, termasuk ekspor ulang atau pemindaian, mengubah hasil hash. Admin registry, RPC, dan upgrade authority adalah pihak yang dipercaya. Selama program masih dapat di-upgrade, jaminan immutability batch juga bergantung pada pengelolaan upgrade authority.

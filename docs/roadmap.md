@@ -1,6 +1,6 @@
-# Kemajuan fondasi
+# Kemajuan
 
-## Dikerjakan pada tahap ini
+## Fondasi (selesai)
 
 - [x] PRD sumber disimpan dan nama repo kanonis dicatat.
 - [x] Diagram arsitektur, sequence publikasi, verifikasi, relasi akun, dan lifecycle.
@@ -10,19 +10,28 @@
 - [x] Test vector independen Python untuk satu leaf dan jumlah leaf ganjil.
 - [x] Test suite manipulasi dokumen/proof serta konfigurasi CI.
 
-## Pekerjaan berikutnya
+## Menuju MVP (kode ditulis, sebagian menunggu eksekusi di Linux/CI)
 
-1. Implementasi Rust dari hashing dan verifikasi menggunakan fixture v1 yang sama.
-2. Program Anchor: inisialisasi registry dengan bootstrap admin yang diotorisasi; register issuer, publish batch, revoke, deactivate, rotate, recover.
-3. Uji signer, PDA, relasi akun, immutability batch dan rotasi/pemulihan kunci. Bootstrap registry tidak boleh first-come-first-served tanpa pengikatan ke admin deployment.
-4. Adapter RPC dengan validasi akun dan snapshot finalized yang konsisten; kode status aplikasi yang tidak mengubah kegagalan jaringan menjadi hasil valid.
-5. UI React/Vite, wallet adapter, backup draft, ekspor final, serta pengujian transaksi terputus.
-6. Deployment Devnet, keputusan upgrade authority, dan uji end-to-end.
+| # | Pekerjaan | Status |
+| --- | --- | --- |
+| 1 | Hashing dan proof di Rust, dicocokkan dengan test vector | Kode dan test ditulis (`crates/solvcred-proof`); **belum dikompilasi** |
+| 2 | Program Anchor: registry, publikasi batch, pencabutan, penonaktifan, rotasi/pemulihan kunci | Kode ditulis (`programs/solvcred`); bootstrap terikat upgrade authority; **belum dikompilasi** |
+| 3 | Pengujian otorisasi dan keamanan akun on-chain | Test ditulis (`tests/program`) dan lolos typecheck; **belum dijalankan** di validator |
+| 4 | Adapter RPC untuk batch, issuer, dan pencabutan | Selesai dan diuji dengan unit test (`packages/solana`) |
+| 5 | UI React, wallet penerbit/admin, ekspor dan verifikasi | Selesai; build dan smoke test browser lokal; alur wallet belum diuji dengan wallet sungguhan |
 
-Fase 1 PRD **belum selesai**: registry, otorisasi on-chain, dan wallet belum diimplementasikan. Kode saat ini tidak menerbitkan atau mencabut kredensial di Solana.
+Gerbang berikutnya adalah menjalankan workflow CI (atau `cargo test` + `anchor test` di Linux/WSL2) dan memperbaiki temuan kompilasi atau perilaku.
 
-## Penjelasan tambahan terhadap PRD
+## Di luar lima kelompok ini (dibutuhkan untuk menyatakan MVP selesai menurut PRD)
 
-PRD menyebut proof tidak dikirim ke RPC. Untuk `revoke`, program perlu memeriksa keanggotaan leaf; jalur Merkle dan leaf hash perlu dikirim sebagai argumen transaksi. File proof lengkap, nonce, PDF, dan data identitas tetap lokal. Pengecualian ini harus dijelaskan pada UI dan threat model sebelum implementasi pencabutan.
+1. Deployment Devnet: keypair program, keputusan pemegang upgrade authority, `initialize_registry` oleh authority tersebut, lalu mengganti `VITE_SOLVCRED_PROGRAM_ID`.
+2. Uji end-to-end di Devnet dengan wallet sungguhan: publikasi, respons terputus, pencabutan, dan rotasi dua tanda tangan.
+3. Data demo, panduan pengguna, audit aksesibilitas, dan benchmark browser.
+4. Commit `Cargo.lock` setelah build Linux pertama berhasil supaya build program dapat direproduksi.
 
-Root Merkle yang dibuat lokal bukan identitas penerbit yang dipercaya. Jangan membuat konfigurasi production dengan program ID fixture, dan jangan membuat label terverifikasi sebelum adapter Solana tersedia.
+## Keputusan yang dicatat
+
+- Pencabutan mengirim leaf hash, indeks, dan jalur Merkle sebagai argumen transaksi agar program dapat memverifikasi keanggotaan. File proof lengkap, nonce, PDF, dan data identitas tetap lokal. Karena leaf hash membutuhkan hash PDF, alur pencabutan di UI meminta PDF sekaligus proof.
+- Issuer nonaktif tidak dapat menerbitkan, tetapi tetap dapat mencabut dan merotasi kunci. MVP belum memiliki instruksi reaktivasi.
+- Verifikasi memeriksa issuer yang tidak terdaftar sebelum batch yang hilang, sehingga issuer tak dikenal selalu tampil sebagai **Penerbit belum dipercaya**.
+- Root Merkle yang dibuat lokal bukan identitas penerbit yang dipercaya. Jangan membuat konfigurasi produksi dengan program ID fixture atau placeholder.

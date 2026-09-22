@@ -1,18 +1,33 @@
-# Validasi lokal
+# Validasi
 
-Lingkungan: Windows x64, Node v22.23.2, Intel Core i7-13620H. Hasil ini merupakan pemeriksaan lokal; workflow GitHub Actions belum diklaim berjalan.
+Lingkungan lokal: Windows x64, Node v22.23.2, Python 3.11, Intel Core i7-13620H. Rust, Solana CLI, dan Anchor **tidak terpasang**. Workflow GitHub Actions belum pernah dijalankan.
+
+## Sudah dijalankan secara lokal
 
 | Pemeriksaan | Hasil |
 | --- | --- |
-| TypeScript strict dan build | Lulus |
-| Test core | 25 test lulus |
+| TypeScript strict: root (`packages`, `scripts`, `tests`) dan `apps/web` | Lulus |
+| Unit test core + klien Solana (`npm test`) | 52 test lulus |
 | Referensi Python independen | Fixture satu, tiga dan lima leaf cocok |
-| Demo ekspor lokal | Tiga PDF fiktif beserta proof dan draft manifest berhasil diperiksa |
-| Audit instalasi npm | 0 vulnerability dilaporkan pada saat instalasi; bukan audit keamanan kode |
-| Benchmark 100 payload sintetis, total 100 MiB | Persiapan 244 ms; verifikasi seluruh payload 269 ms pada satu pengukuran |
+| Build web (`npm run web:build`) | Lulus; satu bundle ±769 kB (gzip ±235 kB), dengan peringatan ukuran chunk |
+| Smoke test browser (build produksi) | View verifikasi dan penerbit tampil tanpa error konsol. Proof dengan program lain menghasilkan "Belum dapat diverifikasi" tanpa request RPC |
+| Smoke test browser dengan RPC dan wallet Wallet Standard palsu | Terverifikasi, Dicabut, Bukti tidak cocok, dan RPC gagal tampil benar. Publikasi terkunci sampai cadangan draft diunduh. Penolakan wallet dan respons ambigu memicu pemeriksaan FR-10, lalu retry memakai draft yang sama. Pencabutan dan rotasi dua tanda tangan juga dicoba. Body request RPC tidak memuat PDF, nonce, sibling, atau proof |
+| Demo dan benchmark (fondasi) | Persiapan 100 payload 1 MiB 244 ms; verifikasi 269 ms pada satu pengukuran |
 
-Angka benchmark hanya menggambarkan satu pengukuran lokal atas hashing byte. Benchmark ini tidak menggunakan 100 ijazah nyata, tidak mengukur browser, RPC atau transaksi, dan bukan SLA produk.
+Unit test klien memakai `Connection` web3.js sungguhan dengan `fetch` palsu. Cakupannya: semua status, klasifikasi kegagalan dan timeout RPC, genesis yang salah, program yang tidak ter-deploy, akun palsu (owner, discriminator, ukuran, relasi), `checkPublishedBatch`, encoding instruksi byte demi byte, dan privasi body request.
 
-Yang belum diuji: implementasi Rust/Anchor, otorisasi on-chain, RPC, UI/browser, wallet, deployment dan end-to-end Devnet. Rust, Anchor dan Solana CLI belum tersedia di lingkungan pengerjaan.
+## Ditulis, belum dijalankan (butuh Linux/WSL2 atau CI)
 
-Test runner Node memerlukan subprocess; pada lingkungan sandbox Windows ini dijalankan dengan izin eksekusi yang sesuai setelah runner awal gagal `spawn EPERM`.
+| Pemeriksaan | Perintah | Catatan |
+| --- | --- | --- |
+| Crate `solvcred-proof` terhadap `test-vectors/v1.json` beserta kasus manipulasi | `cargo test --workspace` | Semantik `verify_path` dicocokkan dengan salinan JavaScript terhadap fixture, belum dengan compiler Rust |
+| Unit test program (validasi nama/domain, discriminator, kode error) | `cargo test --workspace` | |
+| Build program Anchor 0.32.1 dan IDL | `anchor build` | Belum pernah dikompilasi |
+| Otorisasi, relasi akun, immutability, lifecycle kunci, dan siklus penuh lewat adapter | `anchor test` → `npm run test:program` | Hanya lolos typecheck. Kode error yang diharapkan diturunkan dari urutan constraint Anchor |
+| Kesesuaian IDL dengan konstanta klien | `tests/program/00-idl.test.ts` | Dijalankan setelah `anchor build` |
+
+Risiko yang diketahui: dependensi terbaru bisa menuntut rustc yang lebih baru daripada rustc platform-tools Agave 2.3. `.cargo/config.toml` mengaktifkan resolusi yang sadar MSRV (`rust-version = 1.84`). Jika build SBF tetap gagal karena versi dependensi, kunci versinya di `Cargo.lock`, lalu commit lockfile tersebut.
+
+## Belum diuji
+
+Wallet sungguhan, deployment dan end-to-end Devnet, alur admin di browser (register, deactivate, recover; hanya lolos typecheck), serta pengujian aksesibilitas dengan pembaca layar. Angka benchmark hanya mengukur hashing byte lokal, bukan browser, RPC, atau transaksi.

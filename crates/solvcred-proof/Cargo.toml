@@ -1,0 +1,28 @@
+[package]
+name = "solvcred-proof"
+version = "0.1.0"
+description = "SolVcred proof format v1: leaf encoding and SHA-256 Merkle verification"
+edition = "2021"
+rust-version = "1.84"
+publish = false
+
+[lib]
+name = "solvcred_proof"
+
+[features]
+default = ["alloc"]
+# Tree construction (`build_tree`, `path_for`). On-chain code only needs verification.
+alloc = []
+
+[dependencies]
+# `sol_sha256` syscall on-chain, `sha2` elsewhere.
+solana-sha256-hasher = "2.3"
+
+[dev-dependencies]
+serde_json = "1"
+hex = "0.4"
+bs58 = "0.5"
+
+[[test]]
+name = "vectors"
+required-features = ["alloc"]

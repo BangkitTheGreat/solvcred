@@ -1,0 +1,30 @@
+[package]
+name = "solvcred"
+version = "0.1.0"
+description = "SolVcred issuer registry, batch commitments and revocations"
+edition = "2021"
+rust-version = "1.84"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "solvcred"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+# Declared so the cfgs emitted by Anchor macros are known (Anchor 0.32.1 template).
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = "0.32.1"
+solvcred-proof = { path = "../../crates/solvcred-proof", default-features = false }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

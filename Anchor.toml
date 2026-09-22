@@ -1,0 +1,23 @@
+[toolchain]
+anchor_version = "0.32.1"
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+# Placeholder; `anchor keys sync` replaces it with the deploy keypair's address.
+solvcred = "CZtvDiPBJ4voLQ9XchqAaXk9fzzghgsB62uSjwLMxASo"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npm run test:program"
+
+[test]
+# Deploy as an upgradeable program with the provider wallet as upgrade authority, which the
+# initialize_registry bootstrap rule requires.
+upgradeable = true

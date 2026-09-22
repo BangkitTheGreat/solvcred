@@ -3,17 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.23.0" },
+  "engines": {
+    "node": ">=22.23.0"
+  },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p apps/web",
     "build": "tsc",
-    "test": "npm run build && node --test dist/packages/core/test/*.test.js",
+    "test": "npm run build && node --test dist/packages/*/test/*.test.js",
+    "test:program": "npm run build && node --test --test-concurrency=1 dist/tests/program/*.test.js",
     "check": "npm run typecheck && npm test",
     "demo": "npm run build && node dist/scripts/demo.js",
-    "benchmark": "npm run build && node dist/scripts/benchmark.js"
+    "benchmark": "npm run build && node dist/scripts/benchmark.js",
+    "web:dev": "vite --config apps/web/vite.config.ts",
+    "web:build": "tsc --noEmit -p apps/web && vite build --config apps/web/vite.config.ts"
   },
   "devDependencies": {
     "@types/node": "22.20.4",
-    "typescript": "5.9.3"
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.0"
+  },
+  "dependencies": {
+    "@solana/wallet-adapter-base": "0.9.28",
+    "@solana/wallet-adapter-react": "0.15.40",
+    "@solana/web3.js": "1.99.0",
+    "fflate": "0.8.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }

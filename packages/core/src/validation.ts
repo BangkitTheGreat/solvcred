@@ -41,12 +41,13 @@ export function proofDepth(leafCount: number): number {
 
 export function validateProof(value: unknown): CredentialProof {
   const input = record(value);
+  // Version first: a future schema with other fields must surface as unsupported, not malformed.
+  if (Object.hasOwn(input, 'schemaVersion') && input['schemaVersion'] !== 1) {
+    throw new ValidationError('UNSUPPORTED_VERSION', 'Unsupported proof schema version');
+  }
   const allowed = ['schemaVersion', 'network', 'programId', 'issuerId', 'batchId', 'leafCount', 'root', 'leafIndex', 'nonce', 'siblings'];
   if (Object.keys(input).length !== allowed.length || Object.keys(input).some((key) => !allowed.includes(key))) {
     throw new ValidationError('INVALID_INPUT', 'Unexpected or missing proof fields');
-  }
-  if (input['schemaVersion'] !== 1) {
-    throw new ValidationError('UNSUPPORTED_VERSION', 'Unsupported proof schema version');
   }
   const commitment = validateCommitment(input);
   const leafIndex = input['leafIndex'];

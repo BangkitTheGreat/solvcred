@@ -115,6 +115,7 @@ test('validates malformed and unexpected JSON fields without echoing sensitive i
 
 test('unknown version and unsupported network are errors, never successful checks', () => {
   assert.throws(() => parseProofJson(JSON.stringify({ ...first.proof, schemaVersion: 2 })), isCode('UNSUPPORTED_VERSION'));
+  assert.throws(() => parseProofJson(JSON.stringify({ ...first.proof, schemaVersion: 2, holderHint: 'x' })), isCode('UNSUPPORTED_VERSION'));
   assert.throws(() => parseProofJson(JSON.stringify({ ...first.proof, network: 'solana-mainnet' })), isCode('UNSUPPORTED_NETWORK'));
 });
 

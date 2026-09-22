@@ -1,15 +1,23 @@
-name: Foundation checks
+name: CI
 on: [push, pull_request]
 permissions:
   contents: read
+
+env:
+  NODE_VERSION: '22.23.0'
+  RUST_VERSION: '1.89.0'
+  SOLANA_VERSION: '2.3.13'
+  ANCHOR_VERSION: '0.32.1'
+
 jobs:
-  core:
+  typescript:
+    name: Core, client, and web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.23.0'
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - uses: actions/setup-python@v5
         with:
@@ -17,3 +25,59 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run check
       - run: python scripts/reference_vectors.py --check
+      - run: npm run web:build
+
+  rust:
+    name: Rust proof crate and program unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+
+  anchor:
+    name: Anchor build and on-chain tests (localnet)
+    needs: [typescript, rust]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-${{ env.SOLANA_VERSION }}
+      - name: Install Solana CLI (Agave)
+        run: |
+          if [ ! -x "$HOME/.local/share/solana/install/active_release/bin/solana" ]; then
+            sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"
+          fi
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Install Anchor CLI
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -sSfL -o "$HOME/.local/bin/anchor" \
+            "https://github.com/solana-foundation/anchor/releases/download/v${ANCHOR_VERSION}/anchor-${ANCHOR_VERSION}-x86_64-unknown-linux-gnu"
+          chmod +x "$HOME/.local/bin/anchor"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: solana --version && anchor --version
+      - run: solana-keygen new --no-bip39-passphrase --silent --outfile "$HOME/.config/solana/id.json"
+      - run: npm ci --ignore-scripts
+      # The committed program ID is a placeholder without a private key.
+      # Build once to create a throwaway program keypair, then sync the ID into the source.
+      - run: anchor build
+      - run: anchor keys sync
+      # Rebuilds with the synced ID, deploys as an upgradeable program owned by the provider
+      # wallet ([test] upgradeable = true), then runs `npm run test:program`.
+      - run: anchor test

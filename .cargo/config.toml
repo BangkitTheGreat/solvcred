@@ -1,0 +1,4 @@
+# cargo build-sbf uses the Solana platform-tools rustc, which is older than the host toolchain.
+# Prefer dependency versions whose declared rust-version fits the workspace packages.
+[resolver]
+incompatible-rust-versions = "fallback"

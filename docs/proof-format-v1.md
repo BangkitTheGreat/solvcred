@@ -1,6 +1,6 @@
 # Format proof v1
 
-Status: implementasi core lokal; belum ada deployment SolVcred. Nama repository kanonis `BangkitTheGreat/solvcred`. PRD asli disimpan tanpa perubahan di `PRD.md`, termasuk nama repo lamanya.
+Status: diimplementasikan di core TypeScript (`packages/core`) dan Rust (`crates/solvcred-proof`); belum ada deployment SolVcred. Nama repository kanonis `BangkitTheGreat/solvcred`. PRD asli disimpan tanpa perubahan di `PRD.md`, termasuk nama repo lamanya.
 
 ## Representasi JSON
 
@@ -58,12 +58,12 @@ Program ID, network, issuer ID, batch ID, jumlah, dan indeks diikat ke leaf untu
 - `prepareBatch` membuat nonce dengan Web Crypto, bukan nilai dari pengguna.
 - `randomId()` menyediakan ID batch/issuer 32 byte; authority issuer harus terpisah dari ID stabilnya.
 - Dokumen disalin sebelum operasi async agar perubahan input selama hashing tidak menghasilkan batch campuran.
-- Verifikasi hanya mengembalikan hasil integritas. Status issuer dan pencabutan membutuhkan adapter Solana yang belum tersedia.
+- `verifyDocument` hanya mengembalikan hasil integritas. Status lengkap (issuer, batch, pencabutan) berasal dari `verifyCredential` di `packages/solana`, yang memakai root on-chain. `documentLeafHash` menghasilkan leaf hash untuk alamat revocation dan argumen `revoke_credential`.
 
 ## Pemulihan dan perubahan versi
 
 Simpan draft commitment, proof, dan PDF final sebelum mengirim transaksi. Retry memakai batch ID, nonce dan root yang sama. Jangan regenerasi nonce untuk menyelesaikan publikasi yang hasilnya belum jelas.
 
-Setiap perubahan encoding/hash/tag jaringan memerlukan versi baru. Menaikkan batas operasional perlu ditinjau terhadap batas transaksi dan komputasi program. Fixture statis `test-vectors/v1.json` dibuat implementasi Python independen; implementasi Rust mendatang harus menghasilkan byte/hash yang sama sebelum integrasi.
+Setiap perubahan encoding/hash/tag jaringan memerlukan versi baru. Parser memeriksa `schemaVersion` sebelum set field. Menaikkan batas operasional perlu ditinjau terhadap batas transaksi dan komputasi program. Fixture statis `test-vectors/v1.json` dibuat implementasi Python independen. Crate Rust diuji terhadap fixture yang sama (`crates/solvcred-proof/tests/vectors.rs`), dan program memakai `verify_path` yang sama untuk memeriksa keanggotaan saat pencabutan.
 
 Referensi API: [Node Web Crypto](https://nodejs.org/api/webcrypto.html), [TypeScript strict](https://www.typescriptlang.org/tsconfig/strict.html).

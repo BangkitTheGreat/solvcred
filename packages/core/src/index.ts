@@ -1,5 +1,5 @@
 import { buildTree, checkPath, hashLeaf, pathFor, randomId, sha256 } from './merkle.js';
-import { count, parseProofJson, validateCommitment, validateContext, validatePdf } from './validation.js';
+import { count, parseProofJson, validateCommitment, validateContext, validatePdf, validateProof } from './validation.js';
 import { LIMITS, ValidationError, type BatchContext, type BatchCommitment, type CredentialProof, type IntegrityResult, type PreparedBatch } from './types.js';
 
 export { LIMITS, ValidationError } from './types.js';
@@ -55,4 +55,12 @@ export async function verifyDocument(document: Uint8Array, proofJson: string, ex
   return await checkPath(leaf, proof.leafIndex, proof.leafCount, proof.siblings, trusted.root)
     ? { status: 'integrity-match' }
     : { status: 'integrity-mismatch', reason: 'merkle-path' };
+}
+
+/** Leaf hash used to derive the revocation account and the on-chain membership proof. */
+export async function documentLeafHash(document: Uint8Array, proof: CredentialProof): Promise<string> {
+  const checked = validateProof(proof);
+  validatePdf(document);
+  const snapshot = new Uint8Array(document);
+  return hashLeaf(checked, checked.leafCount, checked.leafIndex, checked.nonce, await sha256(snapshot));
 }
