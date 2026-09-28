@@ -24,12 +24,14 @@ Gerbang berikutnya adalah deployment Devnet dan uji end-to-end dengan wallet sun
 
 ## Di luar lima kelompok ini (dibutuhkan untuk menyatakan MVP selesai menurut PRD)
 
-1. Deployment Devnet: keypair program, keputusan pemegang upgrade authority, `initialize_registry` oleh authority tersebut, lalu mengganti `VITE_SOLVCRED_PROGRAM_ID`. `scripts/deploy-devnet.sh` sudah diuji di validator lokal; yang tersisa adalah keputusan pemegang kunci dan eksekusi di Devnet ([runbook](deploy-devnet.md)).
+1. Deployment Devnet: keypair program, keputusan pemegang upgrade authority, `initialize_registry` oleh authority tersebut, lalu mengganti `VITE_SOLVCRED_PROGRAM_ID`. `scripts/deploy-devnet.sh` sudah diuji di validator lokal, dan pemegang kunci sudah diputuskan: satu akun admin khusus dari seed phrase baru. Yang tersisa adalah eksekusi di Devnet oleh pemilik kunci ([runbook](deploy-devnet.md)).
 2. Uji end-to-end di Devnet dengan wallet sungguhan: publikasi, respons terputus, pencabutan, dan rotasi dua tanda tangan.
 3. Data demo, panduan pengguna, audit aksesibilitas, dan benchmark browser.
 4. ~~Commit `Cargo.lock` setelah build Linux pertama berhasil supaya build program dapat direproduksi.~~ Selesai; job `rust` memakai `--locked`.
 
 ## Keputusan yang dicatat
+
+- Upgrade authority dan admin registry Devnet dipegang satu akun admin khusus SolVcred, yang dibuat dari seed phrase baru dan dipakai di wallet browser maupun CLI. Alasan dan langkahnya ada di [runbook](deploy-devnet.md#kunci-admin-registry).
 
 - Pencabutan mengirim leaf hash, indeks, dan jalur Merkle sebagai argumen transaksi agar program dapat memverifikasi keanggotaan. File proof lengkap, nonce, PDF, dan data identitas tetap lokal. Karena leaf hash membutuhkan hash PDF, alur pencabutan di UI meminta PDF sekaligus proof.
 - Issuer nonaktif tidak dapat menerbitkan, tetapi tetap dapat mencabut dan merotasi kunci. MVP belum memiliki instruksi reaktivasi.

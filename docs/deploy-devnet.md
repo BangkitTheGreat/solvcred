@@ -17,21 +17,38 @@ Sebelum mengirim transaksi, skrip menampilkan rencana (deploy pertama, upgrade, 
 | Keputusan | Catatan |
 | --- | --- |
 | Siapa memegang upgrade authority | Program hanya menerima `initialize_registry` dari upgrade authority saat itu, dan wallet tersebut menjadi **admin registry permanen**. MVP tidak memiliki instruksi untuk mengganti admin. Upgrade authority dapat dipindahkan belakangan, tetapi admin registry tetap. |
-| Di mana kunci admin disimpan | Lihat pilihan A dan B di bawah. Buat cadangan kunci ini di luar mesin kerja. Tanpanya, penerbit tidak dapat didaftarkan, dinonaktifkan, atau dipulihkan. |
+| Di mana kunci admin disimpan | Lihat [kunci admin registry](#kunci-admin-registry) di bawah. |
 | Keypair program | Menentukan alamat program secara permanen dan hanya dibutuhkan untuk deploy pertama. Upgrade berikutnya cukup memakai `--program-id`. Simpan di luar repositori, misalnya `~/.config/solana/solvcred-devnet-program.json`. Skrip membuat file ini jika belum ada. |
 | Endpoint RPC | RPC publik Devnet dibatasi rate limit. URL penyedia RPC sering memuat API key, jadi jangan commit URL tersebut. Skrip tidak mencatat URL di `deployments/devnet.json`. |
 | Dana | Deploy pertama menahan sekitar **2,53 SOL** sebagai rent program. Selama deploy dibutuhkan sekitar 2,53 SOL tambahan untuk akun buffer, yang dikembalikan setelah deploy selesai. Siapkan minimal **5,1 SOL** Devnet dari [faucet.solana.com](https://faucet.solana.com). |
 
-**Pilihan A: satu keypair CLI (paling sederhana).** Keypair file menjadi fee payer, upgrade authority, dan admin registry. Skrip menginisialisasi registry sendiri. Untuk memakai Admin UI, impor kunci yang sama ke wallet browser lewat fitur impor private key.
+## Kunci admin registry
 
-**Pilihan B: admin di wallet browser atau hardware wallet.** Deploy dengan keypair CLI dan `--skip-registry`. Pindahkan upgrade authority ke alamat wallet, lalu inisialisasi registry dari tab **Admin → Registry** di UI:
+**Keputusan:** satu akun admin khusus SolVcred yang dibuat dari seed phrase baru. Akun ini menjadi fee payer deploy, upgrade authority, dan admin registry. Akun yang sama dipakai di wallet browser (untuk Admin UI) dan di CLI (untuk skrip deploy).
 
-```sh
-solana program set-upgrade-authority <PROGRAM_ID> --new-upgrade-authority <ALAMAT_WALLET> \
-  --skip-new-upgrade-authority-signer-check --keypair <keypair-cli.json> --url devnet
-```
+Alasannya:
 
-Pilihan B membuat upgrade berikutnya harus ditandatangani wallet tersebut. Skrip ini hanya menerima keypair file. Jika wallet itu Ledger, upgrade dijalankan langsung dengan `solana program deploy target/deploy/solvcred.so --program-id <PROGRAM_ID> --upgrade-authority usb://ledger --url devnet`.
+- **Admin registry permanen.** Jika kuncinya hilang, penerbit tidak dapat lagi didaftarkan, dinonaktifkan, atau dipulihkan. Satu-satunya jalan keluar adalah program baru dengan program ID baru, sehingga semua proof yang sudah diterbitkan tidak lagi cocok dengan konfigurasi aplikasi. Karena itu, cadangan kunci adalah hal terpenting.
+- **Satu rahasia untuk dicadangkan.** Seed phrase memulihkan akun di wallet browser maupun keypair CLI. Tidak ada private key yang perlu disalin atau dikonversi antarformat.
+- **Alamat yang sama di dua tempat.** Admin UI dan skrip deploy memakai akun yang sama, sesuai aturan program bahwa admin registry harus upgrade authority saat bootstrap.
+- **Khusus SolVcred, bukan wallet pribadi.** Alamat Solana berlaku di semua cluster, dan keypair CLI tersimpan tanpa enkripsi di disk. Jangan simpan aset mainnet di akun ini.
+
+Pemisahan upgrade authority dari admin registry, multisig, atau hardware wallet belum diperlukan untuk demo Devnet. Upgrade authority tetap dapat dipindahkan nanti dengan `solana program set-upgrade-authority`.
+
+Jika kunci ini bocor, pemegangnya dapat mendaftarkan penerbit palsu yang tampil tepercaya, menonaktifkan penerbit, merebut authority penerbit lewat `recover_authority`, dan mengganti logika program. Di Devnet dampaknya terbatas pada demo, tetapi kunci tetap harus diperlakukan sebagai rahasia.
+
+Langkah pembuatan:
+
+1. Di wallet browser (Phantom, Solflare, atau Backpack), buat **wallet baru** dengan seed phrase baru, misalnya bernama "SolVcred Devnet Admin". Tulis seed phrase di kertas dan simpan di luar komputer. Aktifkan jaringan Devnet di pengaturan wallet.
+2. Turunkan keypair CLI dari seed phrase yang sama:
+
+   ```sh
+   solana-keygen recover 'prompt://?key=0/0' --outfile ~/.config/solana/solvcred-devnet-admin.json
+   ```
+
+   CLI menampilkan `Recovered pubkey` sebelum menulis file. Lanjutkan hanya jika alamatnya **sama** dengan alamat akun di wallet. Kosongkan passphrase (tekan Enter), karena wallet browser tidak memakainya. `prompt://?key=0/0` adalah jalur m/44'/501'/0'/0', yaitu akun pertama di wallet-wallet tersebut. Jika alamatnya berbeda, jawab `n`, lalu coba `prompt://?key=0`.
+3. Pastikan file itu hanya dapat dibaca pemiliknya: `chmod 600 ~/.config/solana/solvcred-devnet-admin.json`.
+4. Isi saldo alamat tersebut minimal 5,1 SOL Devnet dari [faucet.solana.com](https://faucet.solana.com).
 
 ## Prasyarat
 
@@ -67,8 +84,7 @@ Mode `localnet` hanya menerima URL `localhost`/`127.0.0.1`, dan secara default m
 ## Deploy ke Devnet
 
 ```sh
-solana-keygen new -o ~/.config/solana/solvcred-devnet-admin.json   # simpan seed phrase-nya
-# Isi saldo alamat admin di https://faucet.solana.com (minimal 5,1 SOL)
+# Kunci admin dibuat dan diisi saldo sesuai bagian "Kunci admin registry"
 scripts/deploy-devnet.sh \
   --program-keypair ~/.config/solana/solvcred-devnet-program.json \
   --authority ~/.config/solana/solvcred-devnet-admin.json
@@ -105,12 +121,12 @@ npm run registry -- status --url https://api.devnet.solana.com --program-id <PRO
 
 ## Pemegang hak upgrade
 
-Diisi setelah deploy pertama; alamat diambil dari `deployments/devnet.json`.
+Alamat diisi setelah deploy pertama dari `deployments/devnet.json`.
 
 | Peran | Alamat | Pemegang dan penyimpanan kunci |
 | --- | --- | --- |
-| Upgrade authority | _belum di-deploy_ | |
-| Admin registry | _belum di-deploy_ | |
+| Upgrade authority | _belum di-deploy_ | Pemilik proyek. Akun admin SolVcred: seed phrase di kertas offline, keypair CLI `~/.config/solana/solvcred-devnet-admin.json` |
+| Admin registry | _belum di-deploy_ | Sama dengan upgrade authority (akun yang sama) |
 
 Selama program masih upgradeable, pemegang upgrade authority dapat mengganti logika program. Artinya, jaminan immutability batch bergantung pada kunci ini (lihat [model ancaman](threat-model.md)). Membuat program permanen (`solana program set-upgrade-authority --final`) tidak dapat dibatalkan, jadi tidak direncanakan untuk MVP.
 
