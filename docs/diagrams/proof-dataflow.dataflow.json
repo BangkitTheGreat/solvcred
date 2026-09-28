@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "SolVcred — dari PDF ke Merkle root",
+    "viewBox": [
+      1080,
+      540
+    ],
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "hashing",
+        "label": "Hashing lokal",
+        "focus": [
+          "pdf",
+          "nonce",
+          "leaf",
+          "tree"
+        ],
+        "note": "Semua hashing terjadi di browser; leaf mengikat konteks, nonce, dan hash PDF."
+      },
+      {
+        "id": "public",
+        "label": "Yang menjadi publik",
+        "focus": [
+          "tree",
+          "batch",
+          "leaf",
+          "revocation",
+          "verifier"
+        ],
+        "note": "Hanya root saat publikasi dan leaf hash + path saat pencabutan."
+      },
+      {
+        "id": "holder",
+        "label": "Yang tetap privat",
+        "focus": [
+          "nonce",
+          "proof",
+          "holder",
+          "verifier"
+        ],
+        "note": "Nonce dan sibling hanya ada di proof milik pemegang."
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "Input lokal"
+    },
+    {
+      "label": "Leaf"
+    },
+    {
+      "label": "Merkle"
+    },
+    {
+      "label": "Tersimpan"
+    },
+    {
+      "label": "Verifikasi"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "pdf",
+      "type": "external",
+      "label": "PDF final",
+      "sublabel": "byte persis",
+      "stage": 0,
+      "row": 0,
+      "tag": "privat"
+    },
+    {
+      "id": "nonce",
+      "type": "security",
+      "label": "Nonce acak",
+      "sublabel": "Web Crypto 32 B",
+      "stage": 0,
+      "row": 2,
+      "tag": "privat"
+    },
+    {
+      "id": "leaf",
+      "type": "frontend",
+      "label": "Leaf v1",
+      "sublabel": "konteks + nonce + hash",
+      "stage": 1,
+      "row": 1,
+      "tag": "179 B → SHA-256"
+    },
+    {
+      "id": "tree",
+      "type": "frontend",
+      "label": "Merkle tree",
+      "sublabel": "≤ 100 leaf, ≤ 7 level",
+      "stage": 2,
+      "row": 1,
+      "tag": "0x00 / 0x01"
+    },
+    {
+      "id": "proof",
+      "type": "frontend",
+      "label": "Proof JSON",
+      "sublabel": "nonce + sibling",
+      "stage": 2,
+      "row": 2,
+      "tag": "privat"
+    },
+    {
+      "id": "revocation",
+      "type": "database",
+      "label": "Akun Revocation",
+      "sublabel": "leaf hash",
+      "stage": 4,
+      "row": 0,
+      "tag": "publik"
+    },
+    {
+      "id": "batch",
+      "type": "database",
+      "label": "Akun Batch",
+      "sublabel": "root · leaf_count",
+      "stage": 3,
+      "row": 1,
+      "tag": "publik"
+    },
+    {
+      "id": "holder",
+      "type": "external",
+      "label": "Penerima",
+      "sublabel": "paket final",
+      "stage": 3,
+      "row": 2,
+      "tag": "privat"
+    },
+    {
+      "id": "verifier",
+      "type": "backend",
+      "label": "verifyCredential",
+      "sublabel": "browser verifikator",
+      "stage": 4,
+      "row": 1
+    }
+  ],
+  "flows": [
+    {
+      "id": "pdf-leaf",
+      "from": "pdf",
+      "to": "leaf",
+      "label": "SHA-256(PDF)",
+      "classification": "lokal"
+    },
+    {
+      "id": "nonce-leaf",
+      "from": "nonce",
+      "to": "leaf",
+      "label": "nonce",
+      "classification": "privat",
+      "variant": "security"
+    },
+    {
+      "id": "leaf-tree",
+      "from": "leaf",
+      "to": "tree",
+      "label": "leaf hash",
+      "classification": "lokal",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tree-batch",
+      "from": "tree",
+      "to": "batch",
+      "label": "root",
+      "classification": "publish_batch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tree-proof",
+      "from": "tree",
+      "to": "proof",
+      "label": "sibling path",
+      "classification": "lokal",
+      "labelAt": [
+        530,
+        328
+      ]
+    },
+    {
+      "id": "proof-holder",
+      "from": "proof",
+      "to": "holder",
+      "label": "PDF + proof",
+      "classification": "saluran institusi"
+    },
+    {
+      "id": "leaf-revocation",
+      "from": "leaf",
+      "to": "revocation",
+      "label": "leaf hash + path",
+      "classification": "revoke_credential",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "left",
+      "via": [
+        [
+          315,
+          157
+        ]
+      ]
+    },
+    {
+      "id": "batch-verifier",
+      "from": "batch",
+      "to": "verifier",
+      "label": "root",
+      "classification": "@finalized",
+      "variant": "emphasis"
+    },
+    {
+      "id": "revocation-verifier",
+      "from": "revocation",
+      "to": "verifier",
+      "label": "status cabut",
+      "classification": "@finalized",
+      "variant": "dashed",
+      "labelAt": [
+        960,
+        214
+      ]
+    },
+    {
+      "id": "holder-verifier",
+      "from": "holder",
+      "to": "verifier",
+      "label": "file lokal",
+      "classification": "tidak ke RPC",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          960,
+          385
+        ]
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Tetap privat",
+      "items": [
+        "PDF, nama file, dan hash dokumen",
+        "Nonce dan sibling di proof JSON",
+        "Tidak pernah dikirim ke RPC"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Menjadi publik",
+      "items": [
+        "Root, batch ID, jumlah leaf saat publikasi",
+        "Leaf hash + path hanya untuk yang dicabut",
+        "Alamat PDA terlihat oleh operator RPC"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Leaf v1 mengikat",
+      "items": [
+        "Program ID, issuer ID, batch ID, indeks, jumlah leaf",
+        "Prefix 0x00 untuk leaf, 0x01 untuk node internal",
+        "Node ganjil diduplikasi; pasangan tidak diurutkan"
+      ]
+    }
+  ]
+}
