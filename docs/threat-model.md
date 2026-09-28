@@ -22,8 +22,8 @@
 | Proof memuat URL berbahaya | Field tambahan ditolak; core tidak melakukan request jaringan |
 | RPC gagal dianggap tidak dicabut | Error/timeout RPC selalu menghasilkan `unverifiable`; satu snapshot finalized untuk program, issuer, batch, dan revocation; unit test dengan RPC palsu |
 | RPC mengembalikan akun palsu atau jaringan lain | Cek genesis hash, owner, ukuran, discriminator, relasi antarakun, serta program executable milik loader upgradeable; unit test |
-| Bootstrap registry direbut pihak pertama | `initialize_registry` mewajibkan `program_data.upgrade_authority == admin`; test on-chain ditulis, belum dijalankan |
-| Penerbitan/pencabutan tanpa izin atau lintas issuer | `has_one` authority, PDA dengan bump tersimpan, `batch.issuer == issuer`; test on-chain ditulis, belum dijalankan |
+| Bootstrap registry direbut pihak pertama | `initialize_registry` mewajibkan `program_data.upgrade_authority == admin`; test on-chain lulus di CI (localnet) |
+| Penerbitan/pencabutan tanpa izin atau lintas issuer | `has_one` authority, PDA dengan bump tersimpan, `batch.issuer == issuer`; test on-chain lulus di CI (localnet) |
 | Root batch ditimpa | Batch dibuat dengan `init`, dan tidak ada instruksi yang mengubah atau menutupnya; bergantung pada upgrade authority |
 | Kunci issuer dicuri | Rotasi dua tanda tangan dan pemulihan oleh admin; `key_version` tercatat di batch dan revocation. Batch yang sudah diterbitkan penyerang tidak otomatis batal dan harus dicabut |
 | Penyalahgunaan admin/upgrade authority | Di luar kendali program; wajib didokumentasikan sebelum Devnet/produksi |

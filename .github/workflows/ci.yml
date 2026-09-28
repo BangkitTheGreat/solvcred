@@ -36,7 +36,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --workspace
+      - run: cargo test --workspace --locked
 
   anchor:
     name: Anchor build and on-chain tests (localnet)

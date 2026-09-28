@@ -2,7 +2,7 @@
 
 Fondasi penerbitan dan verifikasi kredensial digital berbasis Solana. Dokumen berada di tangan pemilik; satu Merkle root mewakili satu batch. Penerima dan verifikator tidak membutuhkan wallet.
 
-**Status saat ini: kode MVP ditulis untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI). Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. `cargo test --workspace` sudah lulus di CI, tetapi build SBF Anchor dan test on-chain belum pernah dijalankan. Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
+**Status saat ini: kode MVP untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI) lulus CI, termasuk build SBF Anchor dan 22 test on-chain di validator lokal. Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
 
 ## Mulai
 
@@ -21,7 +21,7 @@ npm run benchmark
 Prasyarat Rust/Anchor (Linux atau WSL2): Rust 1.89, Solana CLI/Agave 2.3.x, Anchor CLI 0.32.1.
 
 ```sh
-cargo test --workspace                 # crate solvcred-proof (test vector v1) dan unit test program
+cargo test --workspace --locked        # crate solvcred-proof (test vector v1) dan unit test program
 solana-keygen new --no-bip39-passphrase  # wallet provider lokal jika belum ada
 anchor build && anchor keys sync       # ganti placeholder dengan program ID dari keypair lokal
 anchor test                            # validator lokal, deploy upgradeable, lalu npm run test:program

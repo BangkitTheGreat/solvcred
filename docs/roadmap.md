@@ -10,24 +10,24 @@
 - [x] Test vector independen Python untuk satu leaf dan jumlah leaf ganjil.
 - [x] Test suite manipulasi dokumen/proof serta konfigurasi CI.
 
-## Menuju MVP (kode ditulis, sebagian menunggu eksekusi di Linux/CI)
+## Menuju MVP (lima kelompok kerja lulus CI)
 
 | # | Pekerjaan | Status |
 | --- | --- | --- |
 | 1 | Hashing dan proof di Rust, dicocokkan dengan test vector | Selesai; `cargo test` lulus di CI terhadap `test-vectors/v1.json` |
-| 2 | Program Anchor: registry, publikasi batch, pencabutan, penonaktifan, rotasi/pemulihan kunci | Kode ditulis (`programs/solvcred`); bootstrap terikat upgrade authority; build host dan unit test lulus di CI, **build SBF/IDL belum dijalankan** |
-| 3 | Pengujian otorisasi dan keamanan akun on-chain | Test ditulis (`tests/program`) dan lolos typecheck; **belum dijalankan** di validator |
+| 2 | Program Anchor: registry, publikasi batch, pencabutan, penonaktifan, rotasi/pemulihan kunci | Selesai (`programs/solvcred`); bootstrap terikat upgrade authority; build SBF/IDL dan unit test lulus di CI |
+| 3 | Pengujian otorisasi dan keamanan akun on-chain | Selesai; 22 test (`tests/program`) lulus di validator lokal lewat `anchor test` di CI |
 | 4 | Adapter RPC untuk batch, issuer, dan pencabutan | Selesai dan diuji dengan unit test (`packages/solana`) |
 | 5 | UI React, wallet penerbit/admin, ekspor dan verifikasi | Selesai; build dan smoke test browser lokal; alur wallet belum diuji dengan wallet sungguhan |
 
-Gerbang berikutnya adalah menjalankan workflow CI (atau `cargo test` + `anchor test` di Linux/WSL2) dan memperbaiki temuan kompilasi atau perilaku.
+Gerbang berikutnya adalah deployment Devnet dan uji end-to-end dengan wallet sungguhan.
 
 ## Di luar lima kelompok ini (dibutuhkan untuk menyatakan MVP selesai menurut PRD)
 
 1. Deployment Devnet: keypair program, keputusan pemegang upgrade authority, `initialize_registry` oleh authority tersebut, lalu mengganti `VITE_SOLVCRED_PROGRAM_ID`.
 2. Uji end-to-end di Devnet dengan wallet sungguhan: publikasi, respons terputus, pencabutan, dan rotasi dua tanda tangan.
 3. Data demo, panduan pengguna, audit aksesibilitas, dan benchmark browser.
-4. Commit `Cargo.lock` setelah build Linux pertama berhasil supaya build program dapat direproduksi.
+4. ~~Commit `Cargo.lock` setelah build Linux pertama berhasil supaya build program dapat direproduksi.~~ Selesai; job `rust` memakai `--locked`.
 
 ## Keputusan yang dicatat
 
