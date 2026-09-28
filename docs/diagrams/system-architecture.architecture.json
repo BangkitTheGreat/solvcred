@@ -1,0 +1,340 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SolVcred — arsitektur sistem",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "verify-path",
+        "label": "Jalur verifikasi",
+        "focus": [
+          "verifier",
+          "web",
+          "sol",
+          "core",
+          "rpc",
+          "program",
+          "accounts"
+        ],
+        "note": "Verifikator tanpa wallet: hashing lokal, lalu satu snapshot finalized dari RPC."
+      },
+      {
+        "id": "issue-path",
+        "label": "Jalur penerbitan",
+        "focus": [
+          "issuer",
+          "web",
+          "core",
+          "wallet",
+          "rpc",
+          "program",
+          "accounts"
+        ],
+        "note": "Draft dibuat lokal, wallet menandatangani, program membuat akun Batch."
+      },
+      {
+        "id": "on-chain",
+        "label": "Program on-chain",
+        "focus": [
+          "rpc",
+          "program",
+          "proofcrate",
+          "accounts"
+        ],
+        "note": "Otorisasi, immutability lewat init, dan verify_path saat pencabutan."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "issuer",
+      "type": "external",
+      "label": "Admin & penerbit",
+      "sublabel": "butuh wallet",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "verifier",
+      "type": "external",
+      "label": "Verifikator / HR",
+      "sublabel": "tanpa wallet",
+      "pos": [
+        40,
+        330
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "hosting",
+      "type": "cloud",
+      "label": "Hosting statis",
+      "sublabel": "dist/web",
+      "pos": [
+        40,
+        520
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "apps/web",
+      "sublabel": "React SPA",
+      "pos": [
+        280,
+        330
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "sol",
+      "type": "frontend",
+      "label": "packages/solana",
+      "sublabel": "adapter RPC",
+      "pos": [
+        520,
+        330
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "core",
+      "type": "frontend",
+      "label": "packages/core",
+      "sublabel": "hash + Merkle v1",
+      "pos": [
+        520,
+        520
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "wallet",
+      "type": "security",
+      "label": "Wallet",
+      "sublabel": "Wallet Standard",
+      "pos": [
+        520,
+        120
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "rpc",
+      "type": "cloud",
+      "label": "RPC Devnet",
+      "sublabel": "dari konfigurasi",
+      "pos": [
+        760,
+        330
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "program",
+      "type": "backend",
+      "label": "programs/solvcred",
+      "sublabel": "Anchor 0.32.1",
+      "pos": [
+        1000,
+        330
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "proofcrate",
+      "type": "backend",
+      "label": "solvcred-proof",
+      "sublabel": "verify_path",
+      "pos": [
+        1000,
+        120
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "accounts",
+      "type": "database",
+      "label": "Akun PDA",
+      "sublabel": "4 jenis akun",
+      "pos": [
+        1000,
+        520
+      ],
+      "size": [
+        160,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Browser pengguna",
+      "wraps": [
+        "web",
+        "sol",
+        "core"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Solana Devnet",
+      "wraps": [
+        "program",
+        "proofcrate",
+        "accounts"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "verifier-web",
+      "from": "verifier",
+      "to": "web",
+      "label": "PDF + proof",
+      "variant": "emphasis"
+    },
+    {
+      "id": "issuer-web",
+      "from": "issuer",
+      "to": "web",
+      "label": "PDF final",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "hosting-web",
+      "from": "hosting",
+      "to": "web",
+      "label": "bundle JS",
+      "variant": "dashed"
+    },
+    {
+      "id": "web-sol",
+      "from": "web",
+      "to": "sol",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-core",
+      "from": "web",
+      "to": "core",
+      "label": "hash lokal"
+    },
+    {
+      "id": "sol-core",
+      "from": "sol",
+      "to": "core"
+    },
+    {
+      "id": "web-wallet",
+      "from": "web",
+      "to": "wallet",
+      "label": "minta tanda tangan",
+      "variant": "security"
+    },
+    {
+      "id": "sol-rpc",
+      "from": "sol",
+      "to": "rpc",
+      "label": "alamat akun",
+      "variant": "emphasis"
+    },
+    {
+      "id": "wallet-rpc",
+      "from": "wallet",
+      "to": "rpc",
+      "label": "tx bertanda tangan",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "rpc-program",
+      "from": "rpc",
+      "to": "program",
+      "variant": "emphasis"
+    },
+    {
+      "id": "program-proof",
+      "from": "program",
+      "to": "proofcrate",
+      "label": "verify_path"
+    },
+    {
+      "id": "program-accounts",
+      "from": "program",
+      "to": "accounts",
+      "label": "init / baca",
+      "labelAt": [
+        1080,
+        457
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Tetap di perangkat",
+      "items": [
+        "PDF dan nama file asli",
+        "Nonce, sibling, proof JSON",
+        "Private key (di wallet)"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Dikirim ke RPC",
+      "items": [
+        "Baca: alamat PDA saja",
+        "Publish: batch ID, root, jumlah leaf",
+        "Cabut: leaf hash, indeks, path"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Pihak yang dipercaya",
+      "items": [
+        "Admin registry",
+        "Pemegang upgrade authority",
+        "Operator RPC dan hosting"
+      ]
+    }
+  ]
+}

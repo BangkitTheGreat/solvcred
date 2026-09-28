@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "SolVcred — publikasi batch dan pemulihan FR-10",
+    "viewBox": [
+      1080,
+      560
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "local-draft",
+        "label": "Draft lokal",
+        "focus": [
+          "issuer",
+          "web",
+          "core"
+        ],
+        "note": "Hash, nonce, dan Merkle tree dibuat di browser; cadangan wajib diunduh."
+      },
+      {
+        "id": "pre-check",
+        "label": "Pra-cek FR-10",
+        "focus": [
+          "web",
+          "rpc"
+        ],
+        "note": "Batch dicek sebelum kirim, karena draft yang dipulihkan mungkin sudah terbit."
+      },
+      {
+        "id": "send-and-settle",
+        "label": "Kirim dan tuntaskan",
+        "focus": [
+          "web",
+          "wallet",
+          "rpc",
+          "issuer"
+        ],
+        "note": "Hanya hasil matches yang membuka paket final."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "issuer",
+      "type": "external",
+      "label": "Penerbit",
+      "sublabel": "authority issuer"
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "apps/web",
+      "sublabel": "PublishPanel"
+    },
+    {
+      "id": "core",
+      "type": "frontend",
+      "label": "packages/core",
+      "sublabel": "prepareBatch"
+    },
+    {
+      "id": "wallet",
+      "type": "security",
+      "label": "Wallet",
+      "sublabel": "tanda tangan"
+    },
+    {
+      "id": "rpc",
+      "type": "backend",
+      "label": "RPC + program",
+      "sublabel": "via packages/solana"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 226,
+      "label": "Draft lokal"
+    },
+    {
+      "from": 232,
+      "to": 308,
+      "label": "Pra-cek FR-10"
+    },
+    {
+      "from": 316,
+      "to": 392,
+      "label": "Kirim + finalitas"
+    },
+    {
+      "from": 400,
+      "to": 476,
+      "label": "Pasca-cek"
+    }
+  ],
+  "messages": [
+    {
+      "id": "select-pdfs",
+      "from": "issuer",
+      "to": "web",
+      "y": 160,
+      "label": "pilih ≤ 100 PDF"
+    },
+    {
+      "id": "prepare",
+      "from": "web",
+      "to": "core",
+      "y": 188,
+      "label": "prepareBatch → draft",
+      "variant": "emphasis"
+    },
+    {
+      "id": "backup",
+      "from": "web",
+      "to": "issuer",
+      "y": 216,
+      "label": "unduh cadangan ZIP",
+      "variant": "return",
+      "note": "Tombol terbit terkunci sampai cadangan diunduh"
+    },
+    {
+      "id": "publish-click",
+      "from": "issuer",
+      "to": "web",
+      "y": 244,
+      "label": "Terbitkan"
+    },
+    {
+      "id": "pre-check",
+      "from": "web",
+      "to": "rpc",
+      "y": 272,
+      "label": "checkPublishedBatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pre-missing",
+      "from": "rpc",
+      "to": "web",
+      "y": 300,
+      "label": "missing",
+      "variant": "return"
+    },
+    {
+      "id": "sign",
+      "from": "web",
+      "to": "wallet",
+      "y": 328,
+      "label": "publish_batch",
+      "variant": "security"
+    },
+    {
+      "id": "send",
+      "from": "wallet",
+      "to": "rpc",
+      "y": 356,
+      "label": "tx bertanda tangan",
+      "variant": "security"
+    },
+    {
+      "id": "poll",
+      "from": "web",
+      "to": "rpc",
+      "y": 384,
+      "label": "poll sampai finalized",
+      "variant": "dashed"
+    },
+    {
+      "id": "post-check",
+      "from": "web",
+      "to": "rpc",
+      "y": 412,
+      "label": "checkPublishedBatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "post-result",
+      "from": "rpc",
+      "to": "web",
+      "y": 440,
+      "label": "matches · missing · conflict",
+      "variant": "return",
+      "note": "Hanya matches yang membuka paket final"
+    },
+    {
+      "id": "outcome",
+      "from": "web",
+      "to": "issuer",
+      "y": 468,
+      "label": "paket final / kirim ulang",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "web",
+      "from": 155,
+      "to": 472,
+      "type": "frontend"
+    },
+    {
+      "participant": "core",
+      "from": 181,
+      "to": 192,
+      "type": "frontend"
+    },
+    {
+      "participant": "rpc",
+      "from": 265,
+      "to": 304,
+      "type": "backend"
+    },
+    {
+      "participant": "wallet",
+      "from": 321,
+      "to": 360,
+      "type": "security"
+    },
+    {
+      "participant": "rpc",
+      "from": 349,
+      "to": 388,
+      "type": "backend"
+    },
+    {
+      "participant": "rpc",
+      "from": 405,
+      "to": 444,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Invarian retry",
+      "items": [
+        "Batch ID, nonce, dan root selalu sama",
+        "PDA batch deterministik + init mencegah batch ganda",
+        "Draft dipulihkan dari ZIP diverifikasi ulang per PDF"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Empat hasil pasca-cek",
+      "items": [
+        "matches → paket final",
+        "missing → kirim ulang draft yang sama",
+        "conflict → berhenti; unknown → periksa ulang"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Isi transaksi",
+      "items": [
+        "batch ID, root, jumlah leaf, skema 1",
+        "Tanpa PDF, nonce, atau proof",
+        "Fee dan rent dibayar authority issuer"
+      ]
+    }
+  ]
+}

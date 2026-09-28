@@ -41,7 +41,7 @@ npm run registry -- status --url <rpc> --program-id <id>                 # statu
 
 ## Konfigurasi UI
 
-Salin `apps/web/.env.example` menjadi `apps/web/.env.local`, atau jalankan skrip deploy dengan `--write-env`.
+Salin `apps/web/.env.example` menjadi `apps/web/.env.local`, atau jalankan skrip deploy dengan `--write-env`. Aturan validasi dan catatan RPC kustom ada di [panduan operasi](docs/deployment.md#1-konfigurasi-frontend).
 
 | Variabel | Default | Keterangan |
 | --- | --- | --- |
@@ -77,14 +77,25 @@ Kegagalan atau timeout RPC selalu menjadi **Belum dapat diverifikasi**. Kegagala
 
 ## Dokumentasi
 
-- [PRD terakhir dari pengguna](docs/PRD.md): dipertahankan tanpa perubahan.
-- [Antarmuka program v1](docs/program-interface.md): PDA, layout akun, instruksi, error.
-- [Diagram arsitektur, alur, relasi akun dan lifecycle](docs/architecture.md).
-- [Spesifikasi proof dan encoding v1](docs/proof-format-v1.md).
-- [Model ancaman dan batas keamanan](docs/threat-model.md).
-- [Runbook deployment Devnet](docs/deploy-devnet.md).
-- [Kemajuan dan pekerjaan berikutnya](docs/roadmap.md).
-- [Hasil validasi](docs/validation.md).
+Mulai dari **[pusat dokumentasi](docs/README.md)**, yang memuat jalur baca per peran dan diagram interaktif.
+
+| Dokumen | Isi |
+| --- | --- |
+| [PRD](docs/PRD.md) | PRD terakhir dari pengguna, dipertahankan tanpa perubahan |
+| [Keterlacakan kebutuhan](docs/requirements-traceability.md) | FR-01–FR-11, kriteria keberhasilan, dan DoD dipetakan ke kode, test, dan status |
+| [System design](docs/system-design.md) | Tujuan, kapasitas dan biaya rent, desain komponen, alur, mode kegagalan, skalabilitas, trade-off |
+| [Arsitektur](docs/architecture.md) | Diagram C4, batas kepercayaan, relasi akun, sequence, state machine, deployment |
+| [Keputusan arsitektur](docs/decisions.md) | 14 ADR beserta alternatif dan konsekuensinya |
+| [Antarmuka program v1](docs/program-interface.md) | PDA, layout akun, instruksi, error |
+| [Format proof v1](docs/proof-format-v1.md) | Spesifikasi proof dan encoding |
+| [Referensi API](docs/api-reference.md) | API `packages/core` dan `packages/solana` |
+| [Model ancaman](docs/threat-model.md) | Ancaman, mitigasi, dan batas keamanan |
+| [Panduan pengembangan](docs/development.md) | Setup toolchain, perintah, strategi test, CI, perubahan kontrak |
+| [Deployment Devnet](docs/deploy-devnet.md) | Skrip deploy, kunci admin registry, biaya, gladi localnet, upgrade |
+| [Operasi dan runbook](docs/deployment.md) | Konfigurasi dan hosting web, onboarding penerbit, uji penerimaan, prosedur insiden |
+| [Panduan pengguna](docs/user-guide.md) | Verifikator, penerima, penerbit, admin |
+| [Glosarium](docs/glossary.md) | Istilah domain, kriptografi, dan Solana |
+| [Roadmap](docs/roadmap.md) · [Validasi](docs/validation.md) | Kemajuan dan hasil pemeriksaan |
 
 ## Struktur
 
