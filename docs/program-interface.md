@@ -3,7 +3,7 @@
 Kontrak biner antara program Anchor (`programs/solvcred`), crate Rust (`crates/solvcred-proof`), dan klien TypeScript (`packages/solana`). Semua perubahan di sini harus dilakukan serentak di ketiga tempat tersebut. Test program di `tests/program` membandingkan konstanta klien dengan IDL hasil `anchor build`.
 
 - Anchor `0.32.1`, Solana CLI/Agave `2.3.x`.
-- Program ID di source adalah **placeholder** `CZtvDiPBJ4voLQ9XchqAaXk9fzzghgsB62uSjwLMxASo`, diturunkan dari hash label, sehingga tidak ada yang memegang private key-nya. Jalankan `anchor keys sync` sebelum build atau deploy.
+- Program ID di source adalah **placeholder** `CZtvDiPBJ4voLQ9XchqAaXk9fzzghgsB62uSjwLMxASo`, diturunkan dari hash label, sehingga tidak ada yang memegang private key-nya. Untuk pengujian lokal jalankan `anchor keys sync`; untuk Devnet, `scripts/deploy-devnet.sh` menulis program ID ke `declare_id!` dan `[programs.devnet]` ([runbook](deploy-devnet.md)).
 - Encoding: Borsh (little-endian). `String` = `u32` panjang byte + UTF-8. `Vec<T>` = `u32` jumlah + elemen.
 - Discriminator: instruksi `sha256("global:<nama_snake>")[0..8]`, akun `sha256("account:<NamaStruct>")[0..8]`.
 

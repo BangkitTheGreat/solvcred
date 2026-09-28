@@ -24,7 +24,7 @@ Gerbang berikutnya adalah deployment Devnet dan uji end-to-end dengan wallet sun
 
 ## Di luar lima kelompok ini (dibutuhkan untuk menyatakan MVP selesai menurut PRD)
 
-1. Deployment Devnet: keypair program, keputusan pemegang upgrade authority, `initialize_registry` oleh authority tersebut, lalu mengganti `VITE_SOLVCRED_PROGRAM_ID`.
+1. Deployment Devnet: keypair program, keputusan pemegang upgrade authority, `initialize_registry` oleh authority tersebut, lalu mengganti `VITE_SOLVCRED_PROGRAM_ID`. `scripts/deploy-devnet.sh` sudah diuji di validator lokal; yang tersisa adalah keputusan pemegang kunci dan eksekusi di Devnet ([runbook](deploy-devnet.md)).
 2. Uji end-to-end di Devnet dengan wallet sungguhan: publikasi, respons terputus, pencabutan, dan rotasi dua tanda tangan.
 3. Data demo, panduan pengguna, audit aksesibilitas, dan benchmark browser.
 4. ~~Commit `Cargo.lock` setelah build Linux pertama berhasil supaya build program dapat direproduksi.~~ Selesai; job `rust` memakai `--locked`.

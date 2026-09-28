@@ -10,6 +10,10 @@ skip-lint = false
 # Placeholder; `anchor keys sync` replaces it with the deploy keypair's address.
 solvcred = "CZtvDiPBJ4voLQ9XchqAaXk9fzzghgsB62uSjwLMxASo"
 
+[programs.devnet]
+# Placeholder until the first Devnet deployment; scripts/deploy-devnet.sh sets it (docs/deploy-devnet.md).
+solvcred = "CZtvDiPBJ4voLQ9XchqAaXk9fzzghgsB62uSjwLMxASo"
+
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"

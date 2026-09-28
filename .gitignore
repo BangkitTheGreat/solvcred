@@ -8,3 +8,5 @@ work/
 *.keypair.json
 target/
 .anchor/
+# Rehearsal records of scripts/deploy-devnet.sh --cluster localnet; deployments/devnet.json is committed.
+deployments/localnet.json

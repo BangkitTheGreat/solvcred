@@ -14,6 +14,7 @@
     "check": "npm run typecheck && npm test",
     "demo": "npm run build && node dist/scripts/demo.js",
     "benchmark": "npm run build && node dist/scripts/benchmark.js",
+    "registry": "npm run --silent build && node --no-deprecation dist/scripts/registry.js",
     "web:dev": "vite --config apps/web/vite.config.ts",
     "web:build": "tsc --noEmit -p apps/web && vite build --config apps/web/vite.config.ts"
   },

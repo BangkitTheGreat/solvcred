@@ -2,7 +2,7 @@
 
 Fondasi penerbitan dan verifikasi kredensial digital berbasis Solana. Dokumen berada di tangan pemilik; satu Merkle root mewakili satu batch. Penerima dan verifikator tidak membutuhkan wallet.
 
-**Status saat ini: kode MVP untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI) lulus CI, termasuk build SBF Anchor dan 22 test on-chain di validator lokal. Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
+**Status saat ini: kode MVP untuk lima kelompok kerja (Rust proof, program Anchor, pengujian on-chain, adapter RPC, UI) lulus CI, termasuk build SBF Anchor dan 22 test on-chain di validator lokal. Program belum di-deploy ke Devnet.** Program ID di source adalah placeholder tanpa private key. Skrip deploy Devnet tersedia dan sudah diuji di validator lokal ([runbook](docs/deploy-devnet.md)). Lihat [hasil validasi](docs/validation.md). Repo kanonis: [BangkitTheGreat/solvcred](https://github.com/BangkitTheGreat/solvcred).
 
 ## Mulai
 
@@ -29,11 +29,19 @@ anchor test                            # validator lokal, deploy upgradeable, la
 
 `anchor keys sync` mengubah `declare_id!` dan `Anchor.toml`. Jangan commit program ID lokal sebagai program ID produksi. Workflow `.github/workflows/ci.yml` menjalankan langkah yang sama di `ubuntu-latest`.
 
+Deploy ke Devnet memakai `scripts/deploy-devnet.sh`. Skrip ini mem-build, men-deploy (atau upgrade), lalu menginisialisasi registry, dan aman dijalankan ulang. Keputusan pemegang kunci, biaya, dan pemulihan ada di [runbook deployment Devnet](docs/deploy-devnet.md).
+
+```sh
+scripts/deploy-devnet.sh --cluster localnet --authority <keypair>          # gladi di solana-test-validator
+scripts/deploy-devnet.sh --program-keypair <file> --authority <keypair>   # Devnet
+npm run registry -- status --url <rpc> --program-id <id>                 # status program dan registry
+```
+
 `npm run demo` menghasilkan tiga PDF fiktif, proof JSON, dan manifest draft di `work/demo-<batch-id>/`. Demo tidak menghubungkan wallet atau mengirim transaksi.
 
 ## Konfigurasi UI
 
-Salin `apps/web/.env.example` menjadi `apps/web/.env`.
+Salin `apps/web/.env.example` menjadi `apps/web/.env.local`, atau jalankan skrip deploy dengan `--write-env`.
 
 | Variabel | Default | Keterangan |
 | --- | --- | --- |
@@ -74,6 +82,7 @@ Kegagalan atau timeout RPC selalu menjadi **Belum dapat diverifikasi**. Kegagala
 - [Diagram arsitektur, alur, relasi akun dan lifecycle](docs/architecture.md).
 - [Spesifikasi proof dan encoding v1](docs/proof-format-v1.md).
 - [Model ancaman dan batas keamanan](docs/threat-model.md).
+- [Runbook deployment Devnet](docs/deploy-devnet.md).
 - [Kemajuan dan pekerjaan berikutnya](docs/roadmap.md).
 - [Hasil validasi](docs/validation.md).
 
@@ -87,7 +96,8 @@ packages/core/           Core TypeScript tanpa dependensi runtime
 packages/solana/         Klien program dan adapter RPC (@solana/web3.js)
 tests/program/           Uji on-chain, dijalankan oleh `anchor test`
 test-vectors/v1.json     Fixture deterministik untuk TypeScript dan Rust
-scripts/                 Referensi Python, demo dan benchmark
+scripts/                 Referensi Python, demo, benchmark, deploy Devnet dan CLI registry
+deployments/             Catatan deployment Devnet (program ID, upgrade authority, admin registry)
 .github/workflows/       CI TypeScript, Rust, dan Anchor localnet
 ```
 

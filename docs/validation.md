@@ -36,6 +36,20 @@ Unit test klien memakai `Connection` web3.js sungguhan dengan `fetch` palsu. Cak
 
 `Cargo.lock` sekarang di-commit, dengan versi crate yang sama seperti yang dikompilasi di run CI tersebut. Dependensi baru bisa menuntut rustc yang lebih baru daripada rustc platform-tools Agave 2.3, sehingga `.cargo/config.toml` tetap mengaktifkan resolusi yang sadar MSRV (`rust-version = 1.84`) dan job `rust` memakai `--locked`. Perbarui lockfile secara sengaja, lalu pastikan job `anchor` tetap lulus.
 
+## Gladi deployment di validator lokal
+
+Dijalankan di Linux dengan `solana-test-validator` Agave 2.3.13 dan Anchor CLI 0.32.1. Kedua alat diambil dari rilis GitHub karena `release.anza.xyz` diblokir di lingkungan itu. RPC Devnet tidak dapat dijangkau, sehingga deploy Devnet sendiri belum dijalankan.
+
+| Skenario `scripts/deploy-devnet.sh --cluster localnet` | Hasil |
+| --- | --- |
+| Deploy pertama + `initialize_registry` | Lulus dalam ±40 detik. Biaya bersih 2,533 SOL, rent buffer kembali, tidak ada buffer tersisa |
+| Dijalankan ulang tanpa perubahan | Tidak ada transaksi; catatan deployment tidak ditulis ulang |
+| Upgrade dengan `--program-id` (tanpa keypair program) | Lulus; bytecode `finalized` identik dengan build baru; `sourceModified` tercatat |
+| Deploy dengan `--skip-registry`, lalu `npm run test:program` terhadap program tersebut | 22/22 test on-chain lulus |
+| Saldo kurang, authority bukan upgrade authority, mode devnet diarahkan ke validator lokal, keypair di dalam repo yang tidak di-ignore, URL non-lokal untuk `localnet`, stdin bukan terminal, jawaban "n" | Semuanya berhenti dengan pesan jelas sebelum mengirim transaksi |
+| `registry.js init` oleh non-authority, diulang, dan setelah registry ada | Ditolak, tidak ada aksi, dan ditolak dengan admin yang tercatat |
+| `solana program show/close --buffers` dari runbook | Buffer yatim terlihat dan dananya kembali |
+
 ## Belum diuji
 
-Wallet sungguhan, deployment dan end-to-end Devnet, alur admin di browser (register, deactivate, recover; instruksinya lulus test on-chain, UI-nya hanya lolos typecheck), serta pengujian aksesibilitas dengan pembaca layar. Angka benchmark hanya mengukur hashing byte lokal, bukan browser, RPC, atau transaksi.
+Wallet sungguhan, deployment Devnet (skrip hanya diuji di validator lokal), end-to-end Devnet, alur admin di browser (register, deactivate, recover; instruksinya lulus test on-chain, UI-nya hanya lolos typecheck), serta pengujian aksesibilitas dengan pembaca layar. Angka benchmark hanya mengukur hashing byte lokal, bukan browser, RPC, atau transaksi.
